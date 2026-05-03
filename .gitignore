@@ -139,6 +139,7 @@ wrangler.toml
 pnpm-lock.yaml
 .local/
 worker/dist-openactai-api/
+CUSTOM_CHANGES.md
 
 # E2E test artifacts
 e2e/test-results/
