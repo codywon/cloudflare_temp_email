@@ -41,7 +41,7 @@ export const tgUserNewAddress = async (
     const res = await newAddress(c, {
         name: finalName,
         domain,
-        enablePrefix: true,
+        enablePrefix: false,
         enableRandomSubdomain,
         sourceMeta: `tg:${userId}`
     });
