@@ -378,6 +378,39 @@ export async function initTelegramBotCommands(c: Context<HonoCustomType>, bot: T
     await bot.telegram.setMyCommands(getTelegramCommands(c));
 }
 
+const extractVerificationCode = (content: string): string | null => {
+    if (!content) return null;
+    const normalized = content.replace(/\u00a0/g, ' ');
+    const patterns = [
+        /(?:验证码|驗證碼|校验码|驗證碼|verification code|security code|otp|code)[:：\s-]*([A-Z0-9]{4,10})/i,
+        /\b([0-9]{4,8})\b/,
+        /\b([A-Z0-9]{6,10})\b/
+    ];
+    for (const pattern of patterns) {
+        const match = normalized.match(pattern);
+        if (match?.[1]) {
+            return match[1].replace(/[\s-]/g, '');
+        }
+    }
+    return null;
+}
+
+const htmlToText = (html: string): string => {
+    if (!html) return '';
+    return html
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 const parseMail = async (
     msgs: LocaleMessages,
     parsedEmailContext: ParsedEmailContext,
@@ -388,9 +421,14 @@ const parseMail = async (
     }
     try {
         const parsedEmail = await commonParseMail(parsedEmailContext);
-        let parsedText = parsedEmail?.text || "";
+        const fallbackText = htmlToText(parsedEmail?.html || '');
+        let parsedText = (parsedEmail?.text || fallbackText || '').trim();
+        const verificationCode = extractVerificationCode(parsedText || fallbackText || parsedEmail?.html || '');
+        if (verificationCode) {
+            parsedText = `验证码 / Verification Code: ${verificationCode}\n\n${parsedText || fallbackText || msgs.TgParseFailedViewInAppMsg}`;
+        }
         if (parsedText.length && parsedText.length > 1000) {
-            parsedText = parsedEmail?.text.substring(0, 1000) + `\n\n...\n${msgs.TgMsgTooLongMsg}`;
+            parsedText = parsedText.substring(0, 1000) + `\n\n...\n${msgs.TgMsgTooLongMsg}`;
         }
         return {
             isHtml: false,

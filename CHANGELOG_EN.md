@@ -17,6 +17,7 @@
 - fix: |Admin| Hash address passwords in the frontend before admin reset requests, and make the backend accept and store only the hash instead of plaintext
 - fix: |Address| Stop returning stored address password hashes from the admin address list and user bound-address list APIs to avoid exposing sensitive fields
 - fix: |Telegram| Stop forcing the global address prefix onto mailboxes created via Telegram Bot `/new`, so bot-created addresses no longer automatically prepend `PREFIX` (for example `tmp`)
+- fix: |Telegram| Improve Telegram mail summary parsing by falling back to HTML-to-text extraction when plain text is missing and prioritizing common verification-code extraction, reducing cases where OpenAI-style verification mails only show “Parse failed, please view in mini app”
 
 ### Improvements
 

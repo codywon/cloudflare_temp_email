@@ -17,6 +17,7 @@
 - fix: |Admin| 管理员重置邮箱地址密码时改为前端 SHA-256 后提交，后端只接受并存储哈希值，避免该接口继续接收明文密码
 - fix: |Address| 管理员邮箱地址列表与用户绑定地址列表不再返回已存储的地址密码哈希值，避免列表接口暴露敏感字段
 - fix: |Telegram| Telegram Bot 使用 `/new` 创建邮箱时不再强制附加全局前缀，避免机器人侧新建地址总是自动带上 `PREFIX`（如 `tmp`）
+- fix: |Telegram| 优化 Telegram 邮件摘要解析：当纯文本正文缺失时回退从 HTML 提取文本，并优先提取常见验证码，减少 OpenAI 等验证码邮件只提示“解析失败，请打开 mini app 查看”的情况
 
 ### Improvements
 
