@@ -1,8 +1,12 @@
 import { getPathWithLocale } from '../i18n/utils'
 
 export const hashPassword = async (password: string) => {
-    // user crypto to hash password
-    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+    // Use Web Crypto when available. Some old Android WebViews / in-app
+    // browsers expose crypto but do not implement crypto.subtle.
+    if (!globalThis.crypto?.subtle || typeof TextEncoder === 'undefined') {
+        throw new Error('Current browser does not support secure password hashing. Please use a newer browser or update WebView.');
+    }
+    const digest = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
     const hashArray = Array.from(new Uint8Array(digest));
     return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }

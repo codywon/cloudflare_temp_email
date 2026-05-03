@@ -49,6 +49,7 @@ const emailName = ref("")
 const emailDomain = ref("")
 const cfToken = ref("")
 const enableRandomSubdomain = ref(false)
+const customSubdomain = ref("")
 const loginCfToken = ref("")
 const loginTurnstileRef = ref(null)
 const loginMethod = ref('credential') // 'credential' or 'password'
@@ -167,9 +168,12 @@ const newEmail = async () => {
     try {
         // If custom names are disabled, send empty name to trigger backend auto-generation
         const nameToSend = openSettings.value.disableCustomAddressName ? "" : emailName.value;
+        const finalDomain = customSubdomain.value?.trim()
+            ? `${customSubdomain.value.trim().toLowerCase()}.${emailDomain.value}`
+            : emailDomain.value;
         const res = await props.newAddressPath(
             nameToSend,
-            emailDomain.value,
+            finalDomain,
             cfToken.value,
             enableRandomSubdomain.value
         );
@@ -206,6 +210,19 @@ const canUseRandomSubdomain = computed(() => {
 
 watch(canUseRandomSubdomain, (enabled) => {
     if (!enabled) {
+        enableRandomSubdomain.value = false;
+        customSubdomain.value = '';
+    }
+});
+
+watch(enableRandomSubdomain, (enabled) => {
+    if (enabled) {
+        customSubdomain.value = '';
+    }
+});
+
+watch(customSubdomain, (value) => {
+    if (value?.trim()) {
         enableRandomSubdomain.value = false;
     }
 });
@@ -319,13 +336,20 @@ onMounted(async () => {
                             <n-select v-model:value="emailDomain" :consistent-menu-width="false"
                                 :options="domainsOptions" />
                         </n-input-group>
-                        <n-form-item-row v-if="canUseRandomSubdomain">
-                            <n-checkbox v-model:checked="enableRandomSubdomain">
-                                {{ t('enableRandomSubdomain') }}
-                            </n-checkbox>
-                            <p style="margin: 8px 0 0; opacity: 0.75;">
-                                {{ t('randomSubdomainTip') }}
-                            </p>
+                        <n-form-item-row v-if="canUseRandomSubdomain" :show-feedback="false">
+                            <n-flex vertical style="width: 100%; gap: 8px;">
+                                <n-checkbox v-model:checked="enableRandomSubdomain">
+                                    {{ t('enableRandomSubdomain') }}
+                                </n-checkbox>
+                                <p style="margin: 0; opacity: 0.75; line-height: 1.6;">
+                                    {{ t('randomSubdomainTip') }}
+                                </p>
+                                <n-input
+                                    v-model:value="customSubdomain"
+                                    :disabled="enableRandomSubdomain"
+                                    placeholder="自定义子域名（可选；启用随机后不可填写）"
+                                />
+                            </n-flex>
                         </n-form-item-row>
                         <Turnstile v-model:value="cfToken" />
                         <n-button type="primary" block secondary strong @click="newEmail" :loading="loading">

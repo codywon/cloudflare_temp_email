@@ -1,11 +1,11 @@
 {
-  "name": "temp-email-pages",
+  "name": "cfmail-frontend-worker",
   "version": "1.8.0",
   "description": "",
-  "main": "index.js",
+  "main": "worker.js",
   "scripts": {
-    "dev": "wrangler pages dev",
-    "deploy": "wrangler pages deploy --branch production"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
   },
   "keywords": [],
   "author": "",

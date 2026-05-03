@@ -12,8 +12,9 @@ const message = useMessage()
 
 const { t } = useScopedI18n('views.admin.CreateAccount')
 
-const enablePrefix = ref(true)
+const enablePrefix = ref(false)
 const enableRandomSubdomain = ref(false)
+const customSubdomain = ref("")
 const emailName = ref("")
 const emailDomain = ref("")
 const showReultModal = ref(false)
@@ -31,6 +32,19 @@ const canUseRandomSubdomain = computed(() => {
 watch(canUseRandomSubdomain, (enabled) => {
     if (!enabled) {
         enableRandomSubdomain.value = false
+        customSubdomain.value = ''
+    }
+})
+
+watch(enableRandomSubdomain, (enabled) => {
+    if (enabled) {
+        customSubdomain.value = ''
+    }
+})
+
+watch(customSubdomain, (value) => {
+    if (value?.trim()) {
+        enableRandomSubdomain.value = false
     }
 })
 
@@ -40,13 +54,16 @@ const newEmail = async () => {
         return
     }
     try {
+        const finalDomain = customSubdomain.value?.trim()
+            ? `${customSubdomain.value.trim().toLowerCase()}.${emailDomain.value}`
+            : emailDomain.value
         const res = await api.fetch(`/admin/new_address`, {
             method: 'POST',
             body: JSON.stringify({
                 enablePrefix: enablePrefix.value,
                 enableRandomSubdomain: enableRandomSubdomain.value,
                 name: emailName.value,
-                domain: emailDomain.value,
+                domain: finalDomain,
             })
         })
         result.value = res["jwt"];
@@ -63,10 +80,11 @@ const getUrlWithJwt = () => {
     return `${window.location.origin}/?jwt=${result.value}`
 }
 
+const openUrlWithJwt = () => {
+    window.open(getUrlWithJwt(), '_blank', 'noopener,noreferrer')
+}
+
 onMounted(async () => {
-    if (openSettings.prefix) {
-        enablePrefix.value = true
-    }
     emailDomain.value = openSettings.value.domains?.[0]?.value || ""
 })
 </script>
@@ -87,9 +105,24 @@ onMounted(async () => {
             <n-card embedded>
                 <n-collapse>
                     <n-collapse-item :title='t("linkWithAddressCredential")'>
-                        <n-card embedded>
-                            <b>{{ getUrlWithJwt() }}</b>
-                        </n-card>
+                        <n-space vertical>
+                            <n-space>
+                                <n-button type="primary" secondary tag="a" :href="getUrlWithJwt()" target="_blank">
+                                    {{ t("linkWithAddressCredential") }}
+                                </n-button>
+                                <n-button secondary @click="navigator.clipboard.writeText(getUrlWithJwt())">
+                                    复制链接
+                                </n-button>
+                            </n-space>
+                            <n-card embedded>
+                                <a
+                                    :href="getUrlWithJwt()"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style="word-break: break-all;"
+                                >{{ getUrlWithJwt() }}</a>
+                            </n-card>
+                        </n-space>
                     </n-collapse-item>
                 </n-collapse>
             </n-card>
@@ -109,13 +142,20 @@ onMounted(async () => {
                         :options="openSettings.domains" />
                 </n-input-group>
             </n-form-item-row>
-            <n-form-item-row v-if="canUseRandomSubdomain">
-                <n-checkbox v-model:checked="enableRandomSubdomain">
-                    {{ t('enableRandomSubdomain') }}
-                </n-checkbox>
-                <p style="margin: 8px 0 0; opacity: 0.75;">
-                    {{ t('randomSubdomainTip') }}
-                </p>
+            <n-form-item-row v-if="canUseRandomSubdomain" :show-feedback="false">
+                <n-flex vertical style="width: 100%; gap: 10px; margin-bottom: 12px;">
+                    <n-checkbox v-model:checked="enableRandomSubdomain">
+                        {{ t('enableRandomSubdomain') }}
+                    </n-checkbox>
+                    <p style="margin: 0; opacity: 0.75; line-height: 1.6;">
+                        {{ t('randomSubdomainTip') }}
+                    </p>
+                    <n-input
+                        v-model:value="customSubdomain"
+                        :disabled="enableRandomSubdomain"
+                        placeholder="自定义子域名（可选；启用随机后不可填写）"
+                    />
+                </n-flex>
             </n-form-item-row>
             <n-button @click="newEmail" type="primary" block :loading="loading">
                 {{ t('creatNewEmail') }}

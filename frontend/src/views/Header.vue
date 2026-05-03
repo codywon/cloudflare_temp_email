@@ -207,9 +207,9 @@ const menuOptions = computed(() => [
 ]);
 
 useHead({
-    title: () => openSettings.value.title || t('title'),
+    title: () => 'CFMail',
     meta: [
-        { name: "description", content: openSettings.value.description || t('title') },
+        { name: "description", content: 'CFMail' },
     ]
 });
 
@@ -244,7 +244,7 @@ onMounted(async () => {
     <div>
         <n-page-header>
             <template #title>
-                <h3>{{ openSettings.title || t('title') }}</h3>
+                <h3>CFMail</h3>
             </template>
             <template #avatar>
                 <div @click="logoClick">
