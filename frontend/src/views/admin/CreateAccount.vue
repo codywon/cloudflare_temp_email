@@ -4,6 +4,7 @@ import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
+import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 const {
     loading, openSettings,
@@ -76,14 +77,6 @@ const newEmail = async () => {
     }
 }
 
-const getUrlWithJwt = () => {
-    return `${window.location.origin}/?jwt=${result.value}`
-}
-
-const openUrlWithJwt = () => {
-    window.open(getUrlWithJwt(), '_blank', 'noopener,noreferrer')
-}
-
 onMounted(async () => {
     emailDomain.value = openSettings.value.domains?.[0]?.value || ""
 })
@@ -91,42 +84,8 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-modal v-model:show="showReultModal" preset="dialog" :title="t('addressCredential')">
-            <span>
-                <p>{{ t("addressCredentialTip") }}</p>
-            </span>
-            <n-card embedded>
-                <b>{{ result }}</b>
-            </n-card>
-            <n-card embedded v-if="addressPassword">
-                <p><b>{{ createdAddress }}</b></p>
-                <p>{{ t('addressPassword') }}: <b>{{ addressPassword }}</b></p>
-            </n-card>
-            <n-card embedded>
-                <n-collapse>
-                    <n-collapse-item :title='t("linkWithAddressCredential")'>
-                        <n-space vertical>
-                            <n-space>
-                                <n-button type="primary" secondary tag="a" :href="getUrlWithJwt()" target="_blank">
-                                    {{ t("linkWithAddressCredential") }}
-                                </n-button>
-                                <n-button secondary @click="navigator.clipboard.writeText(getUrlWithJwt())">
-                                    复制链接
-                                </n-button>
-                            </n-space>
-                            <n-card embedded>
-                                <a
-                                    :href="getUrlWithJwt()"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style="word-break: break-all;"
-                                >{{ getUrlWithJwt() }}</a>
-                            </n-card>
-                        </n-space>
-                    </n-collapse-item>
-                </n-collapse>
-            </n-card>
-        </n-modal>
+        <AddressCredentialModal v-model:show="showReultModal" :address="createdAddress" :jwt="result"
+            :address-password="addressPassword" />
         <n-card :bordered="false" embedded style="max-width: 600px;">
             <n-form-item-row v-if="openSettings.prefix" :label="t('enablePrefix')">
                 <n-switch v-model:value="enablePrefix" :round="false" />
