@@ -21,6 +21,8 @@
 
 ### Improvements
 
+- feat: |Telegram Mini App| Make the embedded Telegram mail detail page default to plain-text view and add “Open in Browser” plus “Copy Plain Text” actions, reducing the impact of Telegram WebView compatibility issues when reading verification and notification mails
+
 ## v1.8.0
 
 ### Features
