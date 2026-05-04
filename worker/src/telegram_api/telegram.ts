@@ -465,6 +465,7 @@ export async function sendMailToTelegram(
         `SELECT id FROM raw_mails where address = ? and message_id = ?`
     ).bind(address, message_id).first<string>("id");
     const bot = newTelegramBot(c, c.env.TELEGRAM_BOT_TOKEN);
+    const targetUserIds = new Set<string>();
 
     const buildAndSend = async (targetUserId: string, msgs: LocaleMessages) => {
         const { mail } = await parseMail(msgs, parsedEmailContext, address, new Date().toUTCString());
@@ -488,14 +489,19 @@ export async function sendMailToTelegram(
     };
 
     if (globalPush) {
-        const globalMsgs = i18n.getMessages(c.env.DEFAULT_LANG || 'zh');
         for (const pushId of settings.globalMailPushList) {
-            await buildAndSend(pushId, globalMsgs);
+            if (pushId) targetUserIds.add(pushId.toString());
         }
     }
 
     if (userId) {
-        const userMsgs = await getTgMessages(c, undefined, userId);
-        await buildAndSend(userId, userMsgs);
+        targetUserIds.add(userId.toString());
+    }
+
+    for (const targetUserId of targetUserIds) {
+        const msgs = globalPush && targetUserId !== userId
+            ? i18n.getMessages(c.env.DEFAULT_LANG || 'zh')
+            : await getTgMessages(c, undefined, targetUserId);
+        await buildAndSend(targetUserId, msgs);
     }
 }
