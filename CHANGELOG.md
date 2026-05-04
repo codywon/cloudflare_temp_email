@@ -21,8 +21,6 @@
 
 ### Improvements
 
-- feat: |Telegram Mini App| Telegram 内嵌邮件详情页默认优先显示纯文本，并新增“在浏览器打开”和“复制纯文本”操作，降低 Telegram WebView 对复杂 HTML 邮件的兼容性问题对查看验证码/通知邮件的影响
-
 ## v1.8.0
 
 ### Features
